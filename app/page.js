@@ -24,35 +24,35 @@ const impact = [
 ];
 
 function AiScanner() {
-  const [file, setFile] = useState(null);
-  const [preview, setPreview] = useState("");
-  const [question, setQuestion] = useState("Identify this electronic item and explain the safest recycling or reuse option.");
+  const [files, setFiles] = useState([]);
+  const [previews, setPreviews] = useState([]);
+  const [question, setQuestion] = useState("Describe what you want us to do with this item. Example: “Can this be repaired?”, “I want to recycle it”, “Is it safe?”, or “I want pickup.”");
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
 
   const chooseFile = (e) => {
-    const selected = e.target.files?.[0];
-    if (!selected) return;
-    setFile(selected);
-    setPreview(URL.createObjectURL(selected));
+    const selected = Array.from(e.target.files || []).slice(0, 4);
+    if (!selected.length) return;
+    setFiles(selected);
+    setPreviews(selected.map((item) => URL.createObjectURL(item)));
     setResult("");
   };
 
   const scan = async () => {
-    if (!file) return;
+    if (!files.length) return;
     setLoading(true);
     setResult("");
     try {
-      const reader = new FileReader();
-      const base64 = await new Promise((resolve, reject) => {
-        reader.onload = () => resolve(String(reader.result).split(",")[1]);
+      const encoded = await Promise.all(files.map((file) => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve({ image: String(reader.result).split(",")[1], mimeType: file.type });
         reader.onerror = reject;
         reader.readAsDataURL(file);
-      });
+      })));
       const response = await fetch("/api/ai/scan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: base64, mimeType: file.type, question })
+        body: JSON.stringify({ images: encoded, question })
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "AI scan failed");
@@ -68,10 +68,10 @@ function AiScanner() {
     <div className="ai-card">
       <div className="ai-upload">
         <label className="upload-box">
-          {preview ? <img src={preview} alt="Selected electronic item" /> : <span className="upload-icon">⌁</span>}
-          <strong>{file ? file.name : "Choose an e-waste image"}</strong>
-          <small>JPG, PNG or WEBP • keep images reasonably sized</small>
-          <input type="file" accept="image/jpeg,image/png,image/webp" onChange={chooseFile} />
+          {previews.length ? <div className="preview-grid">{previews.map((src, i) => <img key={src} src={src} alt={`E-waste image ${i + 1}`} />)}</div> : <span className="upload-icon">⌁</span>}
+          <strong>{files.length ? `${files.length} image${files.length > 1 ? "s" : ""} selected` : "Choose e-waste images"}</strong>
+          <small>Upload up to 4 JPG, PNG or WEBP images</small>
+          <input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={chooseFile} />
         </label>
         <div className="ai-controls">
           <textarea value={question} onChange={e => setQuestion(e.target.value)} />
