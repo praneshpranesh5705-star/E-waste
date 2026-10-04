@@ -23,6 +23,69 @@ const impact = [
   ["48", "Collection partners"],
 ];
 
+function AiScanner() {
+  const [file, setFile] = useState(null);
+  const [preview, setPreview] = useState("");
+  const [question, setQuestion] = useState("Identify this electronic item and explain the safest recycling or reuse option.");
+  const [result, setResult] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const chooseFile = (e) => {
+    const selected = e.target.files?.[0];
+    if (!selected) return;
+    setFile(selected);
+    setPreview(URL.createObjectURL(selected));
+    setResult("");
+  };
+
+  const scan = async () => {
+    if (!file) return;
+    setLoading(true);
+    setResult("");
+    try {
+      const reader = new FileReader();
+      const base64 = await new Promise((resolve, reject) => {
+        reader.onload = () => resolve(String(reader.result).split(",")[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const response = await fetch("/api/ai/scan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: base64, mimeType: file.type, question })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "AI scan failed");
+      setResult(data.result);
+    } catch (error) {
+      setResult(error.message || "AI scan failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="ai-card">
+      <div className="ai-upload">
+        <label className="upload-box">
+          {preview ? <img src={preview} alt="Selected electronic item" /> : <span className="upload-icon">⌁</span>}
+          <strong>{file ? file.name : "Choose an e-waste image"}</strong>
+          <small>JPG, PNG or WEBP • keep images reasonably sized</small>
+          <input type="file" accept="image/jpeg,image/png,image/webp" onChange={chooseFile} />
+        </label>
+        <div className="ai-controls">
+          <textarea value={question} onChange={e => setQuestion(e.target.value)} />
+          <button className="btn" disabled={!file || loading} onClick={scan}>{loading ? "Analysing…" : "Scan with AI →"}</button>
+        </div>
+      </div>
+      <div className="ai-result">
+        <span className="result-label">AI RESULT</span>
+        {result ? <p>{result}</p> : <p className="muted">Your identification and recycling guidance will appear here.</p>}
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [form, setForm] = useState({ name: "", phone: "", type: "", message: "" });
@@ -141,6 +204,15 @@ export default function Home() {
             <button className="btn" type="submit">Request Pickup →</button>
             <p className="form-msg" aria-live="polite">{status}</p>
           </form>
+        </section>
+
+        <section id="ai" className="ai-lab section">
+          <div className="section-head">
+            <p className="eyebrow">AI E-WASTE SCANNER</p>
+            <h2>Upload an electronic item and let AI explain what it is.</h2>
+            <p>Get an AI-generated identification, condition summary and responsible recycling guidance. Never expose your API key in the browser.</p>
+          </div>
+          <AiScanner />
         </section>
 
         <section id="contact" className="contact-strip">
