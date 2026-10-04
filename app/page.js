@@ -75,7 +75,7 @@ function AiScanner() {
         </label>
         <div className="ai-controls">
           <textarea value={question} onChange={e => setQuestion(e.target.value)} />
-          <button className="btn" disabled={!file || loading} onClick={scan}>{loading ? "Analysing…" : "Scan with AI →"}</button>
+          <button className="btn" disabled={!files.length || loading} onClick={scan}>{loading ? "Analysing…" : "Scan with AI →"}</button>
         </div>
       </div>
       <div className="ai-result">
