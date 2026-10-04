@@ -1,1 +1,0 @@
-document.getElementById("pickupForm").addEventListener("submit",function(e){e.preventDefault();const msg=document.getElementById("formMsg");msg.textContent="♻ Request received! Our team will contact you soon.";this.reset();});
