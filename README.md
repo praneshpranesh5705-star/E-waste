@@ -1,18 +1,23 @@
-# EcoCycle — E-Waste Recycling Website
+# EcoCycle — E-Waste Recycling
 
-A responsive e-waste recycling business website inspired by the professional structure of modern textile/business websites, with an original eco-technology design.
+Built with **Next.js, React and JavaScript**.
 
 ## Features
-- Responsive homepage
-- E-waste collection categories
-- Recycling process
+- Responsive EcoCycle landing page
+- Mobile navigation
+- E-waste categories and recycling process
 - Impact dashboard
-- Pickup request form
-- Mobile-friendly navigation
-- No framework/build step required
+- Working pickup form
+- Next.js API route at `/api/pickup`
+- Ready for database, email and AI integrations
 
 ## Run
-Open index.html in a browser or deploy the repository directly with GitHub Pages / Vercel.
+```bash
+npm install
+npm run dev
+```
 
-## Important
-Replace the placeholder contact details with the real business details. Do not claim CPCB registration/authorization unless the organization actually holds it.
+Open http://localhost:3000.
+
+## Compliance
+Replace placeholder compliance text with actual registrations/authorizations. Do not claim CPCB authorization unless actually held.
